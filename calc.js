@@ -4,6 +4,8 @@ Webflow.push(function () {
   let priceTable = {};
   let inputTimeout;
 
+  console.log('Калькулятор загружен');
+
   // Собственная реализация debounce
   function debounce(func, wait) {
     return function executedFunction(...args) {
