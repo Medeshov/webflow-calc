@@ -2,6 +2,19 @@ var Webflow = Webflow || [];
 
 Webflow.push(function () {
   let priceTable = {};
+  let inputTimeout;
+
+  // Собственная реализация debounce
+  function debounce(func, wait) {
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(inputTimeout);
+        func(...args);
+      };
+      clearTimeout(inputTimeout);
+      inputTimeout = setTimeout(later, wait);
+    };
+  }
 
   function loadPricesFromCollection() {
     document.querySelectorAll('.cms-item').forEach((item) => {
@@ -143,19 +156,14 @@ if (sizeType === 'approx') {
     updateDeliveryResult(getDeliveryData());
   });
 
-  $('[select="calc-delivery-from"] .calc-dropdown-option, [select="calc-delivery-to"] .calc-dropdown-option').on('click', function () {
+  // Используем debounce для обработчиков событий
+  const debouncedUpdate = debounce(() => {
     updateDeliveryResult(getDeliveryData());
-  });
+  }, 300);
 
-  $('input[name="Radio-1"], input[name="Sizes"], input[name="PackageSize"]').on('change', function () {
-    updateDeliveryResult(getDeliveryData());
-  });
+  $('[select="calc-delivery-from"] .calc-dropdown-option, [select="calc-delivery-to"] .calc-dropdown-option').on('click', debouncedUpdate);
 
-  let inputTimeout;
-  $('[field="delivery-weight"], [field="delivery-length"], [field="delivery-width"], [field="delivery-height"]').on('input', function () {
-    clearTimeout(inputTimeout);
-    inputTimeout = setTimeout(() => {
-      updateDeliveryResult(getDeliveryData());
-    }, 300);
-  });
+  $('input[name="Radio-1"], input[name="Sizes"], input[name="PackageSize"]').on('change', debouncedUpdate);
+
+  $('[field="delivery-weight"], [field="delivery-length"], [field="delivery-width"], [field="delivery-height"]').on('input', debouncedUpdate);
 });
